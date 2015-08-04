@@ -2,4 +2,4 @@ format: elf64-x86-64
 segments: d, F, df, O
 
 What segment contains wc (the function) and what is its address?
-F   0000000000400838
+F,0000000000400838
