@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Object files
 *.o
 *.ko
@@ -46,3 +47,9 @@ hw1/shell
 
 #HW2
 hw2/httpserver
+=======
+main
+map
+wc
+*txt
+>>>>>>> 91bfc44c68ac8ac54231a106afaf7f27729eb1f4

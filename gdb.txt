@@ -1,0 +1,1 @@
+Value of infile: 0x602010
