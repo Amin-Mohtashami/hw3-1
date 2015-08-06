@@ -22,8 +22,11 @@ int cmd_quit(tok_t arg[]) {
   return 1;
 }
 
-int cmd_help(tok_t arg[]);
+int cmd_cd(tok_t arg[]) {
+  chdir(arg[0]);  
+}
 
+int cmd_help(tok_t arg[]);
 
 /* Command Lookup table */
 typedef int cmd_fun_t (tok_t args[]); /* cmd functions take token array and return int */
@@ -36,6 +39,7 @@ typedef struct fun_desc {
 fun_desc_t cmd_table[] = {
   {cmd_help, "?", "show this help menu"},
   {cmd_quit, "quit", "quit the command shell"},
+  {cmd_cd, "cd", "change directory"},
 };
 
 int cmd_help(tok_t arg[]) {
@@ -124,7 +128,7 @@ int shell (int argc, char *argv[]) {
     else {
       fprintf(stdout, "This shell only supports built-ins. Replace this to run programs as commands.\n");
     }
-    fprintf(stdout, "%d: ", lineNum);
+    fprintf(stdout, "%d - %s: ", lineNum, get_current_dir_name());
   }
   return 0;
 }
