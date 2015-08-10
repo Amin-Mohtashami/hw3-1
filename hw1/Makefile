@@ -4,14 +4,14 @@
 
 # files
 EXECUTABLE  = shell
-SOURCES  = main.c shell.c process.c io.c parse.c 
+SOURCES  = main.c shell.c process.c io.c parse.c
 OBJECTS  = $(SOURCES:.c=.o)
 
 # compilation and linking
 CC      = gcc
 CFLAGS  = -std=c99 -ggdb3 -c
-LDFLAGS = 
-WARN    = -Wall -Wextra -pedantic -Wunused-parameter
+LDFLAGS =
+WARN    = -Wall -Wextra -pedantic
 COMPILE.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(WARN)
 LINK.c    = $(CC)
 
