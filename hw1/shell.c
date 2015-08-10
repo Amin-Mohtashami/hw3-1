@@ -43,6 +43,9 @@ fun_desc_t cmd_table[] = {
     {cmd_cd, "cd", "change directory"},
 };
 
+tok_t *PATH;
+int PATH_SIZE = 0;
+
 int cmd_help(tok_t arg[]) {
     int i;
 
@@ -103,12 +106,13 @@ void add_process(process* p) {
  */
 process* create_process(tok_t *input_str_tokens) {
     /* Make sure there's an actual program to be run */
-    if (input_str_tokens[0] != NULL && input_str_tokens[0] != "") {
+    if (input_str_tokens[0] != NULL) {
         pid_t pid = fork();
         int status;
 
         if (pid >= 0) {
             if (pid == 0) {
+                input_str_tokens[0] = path_resolve(input_str_tokens[0]);
                 input_str_tokens[3] = '\0';
                 int ret = execve(input_str_tokens[0], input_str_tokens, NULL);
 
@@ -127,12 +131,30 @@ process* create_process(tok_t *input_str_tokens) {
     return NULL;
 }
 
+tok_t path_resolve(tok_t program) {
+    if (program[0] != '/') {
+        int i;
 
+        for (i = 0; i < MAXTOKS && PATH[i]; i++) {
+            tok_t _temp = concat(3, PATH[i], "/", program);
 
-int shell (int argc, char *argv[]) {
+            if (file_exists(_temp))
+                return _temp;
+        }
+    }
+
+    return program;
+}
+
+int file_exists(char *filename) {
+    return (access(filename, F_OK) != -1);
+}
+
+int shell(int argc, char *argv[]) {
     char *s = malloc(INPUT_STRING_SIZE+1);			/* user input string */
 
     tok_t *t;		     	/* tokens parsed from input */
+    PATH = getToks(getenv("PATH"));
 
     int lineNum = 0;
     int fundex = -1;
@@ -151,8 +173,10 @@ int shell (int argc, char *argv[]) {
 
         if (fundex >= 0)
             cmd_table[fundex].fun(&t[1]);
-        else
+        else {
             create_process(t);
+            freeToks(t);
+        }
 
         lineNum++;
         fprintf(stdout, "%d %s $ ", lineNum, get_current_dir_name());

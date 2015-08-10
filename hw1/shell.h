@@ -10,5 +10,6 @@ int shell_is_interactive; //1 if shell_terminal is a valid terminal. 0 otherwise
 struct termios shell_tmodes; //terminal options for the shell
 pid_t shell_pgid; //The shell's process id
 int shell(int argc, char *argv[]);
+tok_t path_resolve(tok_t program);
 
 #endif
