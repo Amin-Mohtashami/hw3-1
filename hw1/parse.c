@@ -18,7 +18,7 @@ tok_t *getToks(char *line) {
 
   tok_t *toks = malloc(MAXTOKS*sizeof(tok_t));
   for (i=0; i<MAXTOKS; i++) toks[i] = NULL;     /* empty token array */
-  
+
 
   c = strtok(line,TOKseparator);	 /* Start tokenizer on line */
   for (i=0; c && (i < MAXTOKS); i++) {
@@ -42,9 +42,11 @@ void fprintTok(FILE *ofile, tok_t *t) {
 
 /* Locate special processing character */
 int isDirectTok(tok_t *t, char *R) {
-  int i;
-  for (i=0; i<MAXTOKS-1 && t[i]; i++) {
-    if (strncmp(t[i],R,1) == 0) return i;
-  }
-  return 0;
+    int i;
+
+    for (i=0; i<MAXTOKS-1 && t[i]; i++) {
+        if (strncmp(t[i],R,1) == 0) return i;
+    }
+
+    return 0;
 }
