@@ -112,9 +112,10 @@ process* create_process(tok_t *input_str_tokens) {
 
         if (pid >= 0) {
             if (pid == 0) {
-                input_str_tokens[0] = path_resolve(input_str_tokens[0]);
+                char *prog = path_resolve(input_str_tokens[0]);
                 input_str_tokens[3] = '\0';
-                int ret = execve(input_str_tokens[0], input_str_tokens, NULL);
+                int ret = execve(prog, input_str_tokens, NULL);
+                free(prog);
 
                 if (ret == -1)
                     switch (errno) {
