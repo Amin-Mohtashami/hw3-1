@@ -209,15 +209,11 @@ int file_exists(char *filename) {
     return (access(filename, F_OK) != -1);
 }
 
-void signal_callback_handler (int signum) {
-    printf("Caught signal %d - phew!\n", signum);
-}
-
 int shell(int argc, char *argv[]) {
     char *cwd;
     tok_t tok_special_indexes[MAXTOKS];
-    signal(SIGINT, signal_callback_handler);
-    //fprintf(stdout, "Welcome to Shelley v1.0\n...\n");
+
+    fprintf(stdout, "Welcome to Shelley v1.0\n...\n");
 
     tok_t *t; /* tokens parsed from input */
 
