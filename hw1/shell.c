@@ -121,14 +121,28 @@ process* create_process(tok_t *input_str_tokens, int token_count,
     if (input_str_tokens[0] != NULL) {
         pid_t pid = fork();
         int status;
+        int pgid = getpgrp();
 
         if (pid >= 0) {
             if (pid == 0) {
                 process p;
 
+                // Initial fill in of process struct
                 p.argv = input_str_tokens;
                 p.argc = token_count;
                 p.pid =  getpid();
+
+                if (pgid == 0) pgid = p.pid;
+                setpgid(p.pid, pgid);
+                tcsetpgrp(STDIN_FILENO, pgid);
+
+                /* Signal control back to normal.  */
+                signal (SIGINT, SIG_DFL);
+                signal (SIGQUIT, SIG_DFL);
+                signal (SIGTSTP, SIG_DFL);
+                signal (SIGTTIN, SIG_DFL);
+                signal (SIGTTOU, SIG_DFL);
+                signal (SIGCHLD, SIG_DFL);
 
                 p.background = 'n';
                 p.completed  = 'n';
@@ -138,8 +152,10 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                 p.prev = NULL;
 
                 char *prog = path_resolve(input_str_tokens[0]);
+                // Make sure args end with null byte;
                 input_str_tokens[token_count] = '\0';
 
+                // Check for any redirection, if found set appropriately
                 for (int i = 0; token_markers[i] && (i < MAXTOKS-1); i+=2) {
                     int in_out = token_markers[i][0] == '<' ? 0 : 1;
                     int fd;
@@ -158,16 +174,13 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                     close(fd);
                 }
 
-                int ret = 0;
-
+                // execute program after resolution, redirection
+                int ret;
                 ret = execve(prog, input_str_tokens, NULL);
                 free(prog);
+                perror("execve");
 
-                if (ret == -1)
-                    switch (errno) {
-                        case 2 : fprintf(stdout, "No such file or directory bro.\n");
-                    }
-
+                // update process struct
                 p.completed = 'y';
                 p.stopped = 'y';
 
