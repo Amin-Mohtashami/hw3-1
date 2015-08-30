@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #define INPUT_STRING_SIZE 80
 
@@ -42,7 +43,7 @@ fun_desc_t cmd_table[] = {
 };
 
 int cmd_help(tok_t arg[]) {
-    for (int i = 0; i < (sizeof(cmd_table)/sizeof(fun_desc_t)); i++)
+    for (int i = 0; i < (int)(sizeof(cmd_table)/sizeof(fun_desc_t)); i++)
         printf("%s - %s\n",cmd_table[i].cmd, cmd_table[i].doc);
     return 1;
 }
@@ -62,7 +63,7 @@ int cmd_cd(tok_t arg[]) {
 }
 
 int lookup(char cmd[]) {
-    for (int i = 0; i < (sizeof(cmd_table)/sizeof(fun_desc_t)); i++)
+    for (int i = 0; i < (int)(sizeof(cmd_table)/sizeof(fun_desc_t)); i++)
         if (cmd && (strcmp(cmd_table[i].cmd, cmd) == 0)) return i;
     return -1;
 }
@@ -79,7 +80,15 @@ void init_shell() {
     if (shell_is_interactive) {
         /* force into foreground */
         while (tcgetpgrp (shell_terminal) != (shell_pgid = getpgrp()))
-            kill( - shell_pgid, SIGTTIN);
+            kill (- shell_pgid, SIGTTIN);
+
+            /* Ignore interactive and job-control signals.  */
+            signal (SIGINT, SIG_IGN);
+            signal (SIGQUIT, SIG_IGN);
+            signal (SIGTSTP, SIG_IGN);
+            signal (SIGTTIN, SIG_IGN);
+            signal (SIGTTOU, SIG_IGN);
+            signal (SIGCHLD, SIG_IGN);
 
         shell_pgid = getpid();
         /* Put shell in its own process group */
@@ -115,6 +124,19 @@ process* create_process(tok_t *input_str_tokens, int token_count,
 
         if (pid >= 0) {
             if (pid == 0) {
+                process p;
+
+                p.argv = input_str_tokens;
+                p.argc = token_count;
+                p.pid =  getpid();
+
+                p.background = 'n';
+                p.completed  = 'n';
+                p.stopped    = 'n';
+
+                p.next = NULL;
+                p.prev = NULL;
+
                 char *prog = path_resolve(input_str_tokens[0]);
                 input_str_tokens[token_count] = '\0';
 
@@ -122,17 +144,22 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                     int in_out = token_markers[i][0] == '<' ? 0 : 1;
                     int fd;
 
-                    if (in_out == 0)
+                    if (in_out == 0) {
                         fd = open(token_markers[i+1], O_RDONLY);
-                    else
+                        p.stdin = fd;
+                    }
+                    else {
                         fd = open(token_markers[i+1], O_WRONLY | O_TRUNC |
                             O_CREAT, S_IRUSR | S_IRGRP | S_IWGRP | S_IWUSR);
+                        p.stdout = fd;
+                    }
 
                     dup2(fd, in_out);
                     close(fd);
                 }
 
                 int ret = 0;
+
                 ret = execve(prog, input_str_tokens, NULL);
                 free(prog);
 
@@ -140,6 +167,9 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                     switch (errno) {
                         case 2 : fprintf(stdout, "No such file or directory bro.\n");
                     }
+
+                p.completed = 'y';
+                p.stopped = 'y';
 
                 exit(ret);
             }
@@ -166,9 +196,15 @@ int file_exists(char *filename) {
     return (access(filename, F_OK) != -1);
 }
 
+void signal_callback_handler (int signum) {
+    printf("Caught signal %d - phew!\n", signum);
+}
+
 int shell(int argc, char *argv[]) {
     char *cwd;
     tok_t tok_special_indexes[MAXTOKS];
+    signal(SIGINT, signal_callback_handler);
+    //fprintf(stdout, "Welcome to Shelley v1.0\n...\n");
 
     tok_t *t; /* tokens parsed from input */
 
@@ -202,5 +238,5 @@ int shell(int argc, char *argv[]) {
         free(cwd);
     } while ((s = freadln(stdin)));
 
-    return 0;
+    return cmd_table[lookup("quit")].fun(&t[1]);
 }
