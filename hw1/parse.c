@@ -13,11 +13,14 @@
 
 #define TOK_SEPARATOR_DEFAULT " \n:"
 
-tok_t *getToks(char *line, int *tok_num, tok_t tok_special[]) {
-    int i,j = 0;
+tok_t *getToks(char *line, int *tok_num, tok_t tok_special[], int *bg) {
+    int i,j = 0, is_bg;
     char *c;
 
     tok_t *toks = malloc(MAXTOKS * sizeof(tok_t));
+
+    // default foreground process
+    *bg = 0;
 
     for (int i = 0; i < MAXTOKS; i++) {
         toks[i] = NULL; /* empty token array */
@@ -32,6 +35,13 @@ tok_t *getToks(char *line, int *tok_num, tok_t tok_special[]) {
             tok_special[j] = strtok(NULL, TOK_SEPARATOR_DEFAULT);
             j++;
         }
+	else if ((is_bg = isDirectTok(c)) != 0) {
+		if (is_bg == 2) {
+			toks[i] = without_tok(c);
+		}
+
+		*bg = 1;
+	}
         else
             toks[i] = c;
 
@@ -44,7 +54,7 @@ tok_t *getToks(char *line, int *tok_num, tok_t tok_special[]) {
 }
 
 void freeToks(tok_t *toks) {
-  free(toks);
+    free(toks);
 }
 
 void fprintTok(FILE *ofile, tok_t *t) {
@@ -54,8 +64,24 @@ void fprintTok(FILE *ofile, tok_t *t) {
 }
 
 /* Locate special processing character */
-int isDirectTok(tok_t *t, char *R) {
-    for (int i = 0; i < MAXTOKS - 1 && t[i]; i++)
-        if (strncmp(t[i],R,1) == 0) return i;
+int isDirectTok(tok_t t) {
+    int len = strlen(t);
+    if (len == 1) {
+	if (t[0] == '&')
+		return 1;
+    }
+    else if (len > 1) {
+	if (t[len-1] == '&')
+		return 2;
+    }
+
     return 0;
+}
+
+tok_t without_tok(tok_t token) {
+    tok_t* new = malloc(sizeof(tok_t));
+    for (int i = 0; i < strlen(token) - 2; i++)
+	new[i] = token[i];
+
+    return new;
 }

@@ -31,7 +31,9 @@
 
 typedef char *tok_t;
 
-tok_t *getToks(char *line, int *tok_num, tok_t tok_special[]);
+tok_t *getToks(char *line, int *tok_num, tok_t tok_special[], int *bg);
 void freeToks(tok_t *toks);
+int isDirectTok(tok_t t);
+tok_t without_tok(tok_t token);
 
 #endif

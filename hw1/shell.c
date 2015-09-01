@@ -1,3 +1,5 @@
+#define _POSIX_SOURCE
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -21,8 +23,9 @@
 
 /* Globals */
 char *s;
+char *cwd;
 tok_t *PATH;
-int PATH_SIZE = 0;
+int PATH_SIZE = 0, lineNum = 0;
 
 int cmd_quit(tok_t arg[]);
 int cmd_help(tok_t arg[]);
@@ -39,7 +42,7 @@ typedef struct fun_desc {
 fun_desc_t cmd_table[] = {
     {cmd_help, "?", "show this help menu"},
     {cmd_quit, "quit", "quit the command shell"},
-    {cmd_cd, "cd", "change directory"},
+    {cmd_cd, "cd", "change working directory"},
 };
 
 int cmd_help(tok_t arg[]) {
@@ -92,7 +95,7 @@ void init_shell() {
 
         shell_pgid = getpid();
         /* Put shell in its own process group */
-        if(setpgid(shell_pgid, shell_pgid) < 0){
+        if(setpgid(shell_pgid, shell_pgid) < 0) {
           perror("Couldn't put the shell in its own process group... Eish.");
           exit(1);
         }
@@ -101,8 +104,6 @@ void init_shell() {
         tcsetpgrp(shell_terminal, shell_pgid);
         tcgetattr(shell_terminal, &shell_tmodes);
   }
-
-  /** YOUR CODE HERE */
 }
 
 /**
@@ -116,7 +117,7 @@ void add_process(process* p) {
  * Creates a process given the inputString from stdin
  */
 process* create_process(tok_t *input_str_tokens, int token_count,
-    tok_t token_markers[]) {
+    tok_t token_markers[], int bg) {
     /* Make sure there's an actual program to be run */
     if (input_str_tokens[0] != NULL) {
         pid_t pid = fork();
@@ -132,9 +133,16 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                 p.argc = token_count;
                 p.pid =  getpid();
 
-                if (pgid == 0) pgid = p.pid;
-                setpgid(p.pid, pgid);
-                tcsetpgrp(STDIN_FILENO, pgid);
+		// if bg process, don't bring to fg
+		if (bg == 0) {
+                    if (pgid == 0) pgid = p.pid;
+                    setpgid(p.pid, pgid);
+	            tcsetpgrp(STDIN_FILENO, pgid);
+		}
+		else {
+		    fprintf(stdout, "[1] %d\n", p.pid);
+	            tcsetpgrp(STDIN_FILENO, pgid);
+		}
 
                 /* Signal control back to normal.  */
                 signal (SIGINT, SIG_DFL);
@@ -152,6 +160,7 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                 p.prev = NULL;
 
                 char *prog = path_resolve(input_str_tokens[0]);
+
                 // Make sure args end with null byte;
                 input_str_tokens[token_count] = '\0';
 
@@ -178,11 +187,14 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                 int ret;
                 ret = execve(prog, input_str_tokens, NULL);
                 free(prog);
-                perror("execve");
 
                 // update process struct
                 p.completed = 'y';
                 p.stopped = 'y';
+
+		// If there any errors present
+		if (ret == -1)
+			perror("execve");
 
                 exit(ret);
             }
@@ -209,15 +221,21 @@ int file_exists(char *filename) {
     return (access(filename, F_OK) != -1);
 }
 
+void prompter() {
+    cwd = getcwd(NULL, 0);
+    fprintf(stdout, "%d - \033[40m\033[4m\033[1m\033[33m%s\033[0m $ ",
+        ++lineNum, cwd);
+    free(cwd);
+}
+
 int shell(int argc, char *argv[]) {
-    char *cwd;
     tok_t tok_special_indexes[MAXTOKS];
 
     fprintf(stdout, "Welcome to Shelley v1.0\n...\n");
 
     tok_t *t; /* tokens parsed from input */
 
-    int lineNum = 0, fundex = -1, tok_num = 0;
+    int fundex = -1, tok_num = 0, bg = 0;
 
     pid_t pid = getpid(),   /* get current processes PID */
           ppid = getppid(), /* get parents PID */
@@ -225,10 +243,10 @@ int shell(int argc, char *argv[]) {
 
     init_shell();
 
-    PATH = getToks(getenv("PATH"), &tok_num, tok_special_indexes);
+    PATH = getToks(getenv("PATH"), &tok_num, tok_special_indexes, &bg);
 
     do {
-        t = getToks(s, &tok_num, tok_special_indexes); /* break the line into tokens */
+        t = getToks(s, &tok_num, tok_special_indexes, &bg); /* break the line into tokens */
 
         if (t != NULL) {
             fundex = lookup(t[0]); /* Is first token a shell literal */
@@ -236,15 +254,12 @@ int shell(int argc, char *argv[]) {
             if (fundex >= 0)
                 cmd_table[fundex].fun(&t[1]);
             else {
-                create_process(t, tok_num, tok_special_indexes);
+                create_process(t, tok_num, tok_special_indexes, bg);
                 freeToks(t);
             }
         }
 
-        cwd = getcwd(NULL, 0);
-        fprintf(stdout, "%d %s $ ", lineNum, cwd);
-        lineNum++;
-        free(cwd);
+        prompter();
     } while ((s = freadln(stdin)));
 
     return cmd_table[lookup("quit")].fun(&t[1]);
