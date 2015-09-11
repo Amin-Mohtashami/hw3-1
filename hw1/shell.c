@@ -138,10 +138,13 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                     if (pgid == 0) pgid = p.pid;
                     setpgid(p.pid, pgid);
 	            tcsetpgrp(STDIN_FILENO, pgid);
+                    p.background = 'n';
 		}
 		else {
-		    fprintf(stdout, "[1] %d\n", p.pid);
-	            tcsetpgrp(STDIN_FILENO, pgid);
+		    fprintf(stdout, "\n[1] %d\n", p.pid);
+	            tcsetpgrp(shell_terminal, shell_pgid);
+                    p.background = 'y';
+		    fputc('\n', stdin);
 		}
 
                 /* Signal control back to normal.  */
@@ -152,7 +155,6 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                 signal (SIGTTOU, SIG_DFL);
                 signal (SIGCHLD, SIG_DFL);
 
-                p.background = 'n';
                 p.completed  = 'n';
                 p.stopped    = 'n';
 
@@ -185,7 +187,7 @@ process* create_process(tok_t *input_str_tokens, int token_count,
 
                 // execute program after resolution, redirection
                 int ret;
-                ret = execve(prog, input_str_tokens, NULL);
+                ret = execv(prog, input_str_tokens);
                 free(prog);
 
                 // update process struct
@@ -193,13 +195,19 @@ process* create_process(tok_t *input_str_tokens, int token_count,
                 p.stopped = 'y';
 
 		// If there any errors present
-		if (ret == -1)
-			perror("execve");
+		if (ret == -1) perror("execve");
+
+		// When background task completes
+		if (bg) fprintf(stdout, "[1] +done  %d.\n", p.pid);
 
                 exit(ret);
             }
-            else
-                wait(&status);
+            else {
+                if (!bg) wait(&status);
+		else {
+		    fputc('\n', stdin);
+		}
+	    }
         }
     }
 
