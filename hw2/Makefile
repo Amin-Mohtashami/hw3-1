@@ -1,17 +1,46 @@
-CC=gcc
-CFLAGS=-ggdb3 -c -Wall
-LDFLAGS=-pthread
-SOURCES=httpserver.c libhttp.c
-OBJECTS=$(SOURCES:.c=.o)
-EXECUTABLE=httpserver
+#################
+#   variables   #
+#################
 
-all: $(SOURCES) $(EXECUTABLE)
+# files
+EXECUTABLE  = words
+SOURCES  = words.c 
+
+OBJECTS  = $(SOURCES:.c=.o)
+
+# compilation and linking
+CC      = gcc
+CFLAGS  = -c -std=c99 -D_GNU_SOURCE
+LDFLAGS = -lpthread
+WARN    = -Wall -Wextra -pedantic
+COMPILE.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(WARN)
+LINK.c    = $(CC)
+
+# define paths
+vpath %.c src
+vpath %.h include
+
+#################
+#     targets   #
+#################
+
+all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
+	$(LINK.c) $^ -o $@ $(LDFLAGS)
 
-.c.o:
-	$(CC) $(CFLAGS) $< -o $@
+$(OBJECTS): %.o: %.c
+	$(COMPILE.c) $< -o $@
 
+# phony targets
+.PHONY: clean
+
+# remove object files, emacs temporaries
 clean:
-	rm -f $(EXECUTABLE) $(OBJECTS)
+	rm -f *.o *~
+
+# print-VAR prints the value of the variable VAR
+print-%  : ; @echo $* = $($*)
+
+
+
