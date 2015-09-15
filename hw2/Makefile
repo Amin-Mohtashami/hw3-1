@@ -4,7 +4,11 @@
 
 # files
 EXECUTABLE  = words
+<<<<<<< HEAD
 SOURCES  = words.c 
+=======
+SOURCES  = words.c
+>>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
 
 OBJECTS  = $(SOURCES:.c=.o)
 
@@ -28,6 +32,7 @@ all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
 	$(LINK.c) $^ -o $@ $(LDFLAGS)
+<<<<<<< HEAD
 
 $(OBJECTS): %.o: %.c
 	$(COMPILE.c) $< -o $@
@@ -35,12 +40,24 @@ $(OBJECTS): %.o: %.c
 # phony targets
 .PHONY: clean
 
+=======
+
+$(OBJECTS): %.o: %.c
+	$(COMPILE.c) $< -o $@
+
+# phony targets
+.PHONY: clean
+
+>>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
 # remove object files, emacs temporaries
 clean:
 	rm -f *.o *~
 
 # print-VAR prints the value of the variable VAR
 print-%  : ; @echo $* = $($*)
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b

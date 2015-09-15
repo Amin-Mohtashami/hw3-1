@@ -25,20 +25,6 @@ make_dict(char *word) {
 
 dict_t *
 insert_word( dict_t *d, char *word ) {
-<<<<<<< HEAD
-  
-  //   Insert word into dict or increment count if already there
-  //   return pointer to the updated dict
-  
-  dict_t *nd;
-  dict_t *pd = NULL;		// prior to insertion point 
-  dict_t *di = d;		// following insertion point
-  // Search down list to find if present or point of insertion
-  while(di && ( strcmp(word, di->word ) >= 0) ) { 
-    if( strcmp( word, di->word ) == 0 ) { 
-      di->count++;		// increment count 
-      return d;			// return head 
-=======
 
   //   Insert word into dict or increment count if already there
   //   return pointer to the updated dict
@@ -51,24 +37,15 @@ insert_word( dict_t *d, char *word ) {
     if( strcmp( word, di->word ) == 0 ) {
       di->count++;		// increment count
       return d;			// return head
->>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
     }
     pd = di;			// advance ptr pair
     di = di->next;
   }
-<<<<<<< HEAD
-  nd = make_dict(word);		// not found, make entry 
-  nd->next = di;		// entry bigger than word or tail 
-  if (pd) {
-    pd->next = nd;
-    return d;			// insert beond head 
-=======
   nd = make_dict(word);		// not found, make entry
   nd->next = di;		// entry bigger than word or tail
   if (pd) {
     pd->next = nd;
     return d;			// insert beond head
->>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
   }
   return nd;
 }
@@ -83,20 +60,12 @@ void print_dict(dict_t *d) {
 int
 get_word( char *buf, int n, FILE *infile) {
   int inword = 0;
-<<<<<<< HEAD
-  int c;  
-=======
   int c;
->>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
   while( (c = fgetc(infile)) != EOF ) {
     if (inword && !isalpha(c)) {
       buf[inword] = '\0';	// terminate the word string
       return 1;
-<<<<<<< HEAD
-    } 
-=======
     }
->>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
     if (isalpha(c)) {
       buf[inword++] = c;
     }
@@ -130,7 +99,3 @@ main( int argc, char *argv[] ) {
   print_dict( d );
   fclose( infile );
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 055eb9ae37b9bea59c9bfc2706f835be03c5041b
