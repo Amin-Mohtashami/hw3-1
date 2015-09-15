@@ -27,17 +27,17 @@ vpath %.h include
 all: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
-    $(LINK.c) $^ -o $@ $(LDFLAGS)
+	$(LINK.c) $^ -o $@ $(LDFLAGS)
 
 $(OBJECTS): %.o: %.c
-    $(COMPILE.c) $< -o $@
+	$(COMPILE.c) $< -o $@
 
 # phony targets
 .PHONY: clean
 
 # remove object files, emacs temporaries
 clean:
-    rm -f *.o *~
+	rm -f *.o *~
 
 # print-VAR prints the value of the variable VAR
 print-%  : ; @echo $* = $($*)
