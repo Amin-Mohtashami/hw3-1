@@ -4,7 +4,6 @@ Create in your repository a file called pwords.c that will contain the code of
 your threaded solution. In writing pwords.c, try to reuse as much code from
 words.c as you can. Your dictionary should be protected by a mutex that
 synchronizes access to your dictionary by multiple threads. To build your
-program, you can use the makefile we provided for you.
-Once you’re done and have tested your work, you might want to c
-ompare the speed of execution of the sequential and threaded solutions on your
-machine. Once you’re done, execute
+program, you can use the makefile we provided for you. Once you’re done and have
+tested your work, you might want to compare the speed of execution of the sequential
+and threaded solutions on your machine. Once you’re done, execute!

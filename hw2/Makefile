@@ -3,15 +3,15 @@
 #################
 
 # files
-EXECUTABLE  = words
-SOURCES  = words.c
+EXECUTABLE  = pwords
+SOURCES  = pwords.c
 
 OBJECTS  = $(SOURCES:.c=.o)
 
 # compilation and linking
 CC      = gcc
 CFLAGS  = -c -std=c99 -D_GNU_SOURCE
-LDFLAGS = -lpthread
+LDFLAGS = -pthread
 WARN    = -Wall -Wextra -pedantic
 COMPILE.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(WARN)
 LINK.c    = $(CC)
