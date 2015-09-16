@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include <pthread.h>
 
-#define NUM_THREADS 16
+#define NUM_THREADS 4
 #define MAXWORD     1024
 
 typedef struct dict {
