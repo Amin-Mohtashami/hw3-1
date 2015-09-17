@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <ctype.h>
 #include <pthread.h>
-#include <fcntl.h>
 
 #define NUM_THREADS 4
 #define MAXWORD     1024
@@ -24,14 +23,6 @@ FILE *infile, *outfile;
 
 void dbg(char* _dbg_text) {
 	if (DEBUG) fprintf(outfile, "%s", _dbg_text);
-}
-
-void idbg(char* _dbg_text) {
-	if (DEBUG) fprintf(outfile, "\033[31m%s\033[0m", _dbg_text);
-}
-
-void sdbg(char* _dbg_text) {
-	if (DEBUG) fprintf(outfile, "\033[32m%s\033[0m", _dbg_text);
 }
 
 char* make_word( char *word ) {
@@ -94,7 +85,7 @@ void* thread_worker(void* rank) {
 
 		pthread_mutex_lock(&guardian);
 		c = fgetc(infile);
-		idbg("[1] pthread_mutex_lock -\n");
+		dbg("[1] pthread_mutex_lock -\n");
 		while (c != EOF && inword < MAXWORD) {
 			if (inword && !isalpha(c)) {
 				_wb[inword] = '\0'; // terminate the word string
@@ -108,17 +99,17 @@ void* thread_worker(void* rank) {
 		if (DEBUG) fprintf(outfile, "thread_num: %ld - %s\n", _self, _wb);
 		pthread_mutex_unlock(&guardian);
 
-		sdbg("[1] pthread_mutex_unlock -\n\n");
+		dbg("[1] pthread_mutex_unlock -\n\n");
 
 		if (c == EOF) break;
 
 		pthread_mutex_lock(&guardian);
-		idbg("[2] pthread_mutex_lock -\n");
+		dbg("[2] pthread_mutex_lock -\n");
 
 		d = insert_word(d, _wb);              // add to dict
 
 		pthread_mutex_unlock(&guardian);
-		sdbg("[2] pthread_mutex_unlock -\n\n");
+		dbg("[2] pthread_mutex_unlock -\n\n");
 	}
 
 	free(_wb);
