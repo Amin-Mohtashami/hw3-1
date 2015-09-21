@@ -21,15 +21,18 @@ pthread_mutex_t guardian;
 pthread_mutexattr_t guardian_attr;
 FILE *infile, *outfile;
 
-void dbg(char* _dbg_text) {
+void
+dbg(char* _dbg_text) {
 	if (DEBUG) fprintf(outfile, "%s", _dbg_text);
 }
 
-char* make_word( char *word ) {
+char*
+make_word( char *word ) {
 	return strcpy(malloc(strlen(word)+1), word);
 }
 
-dict_t* make_dict(char *word) {
+dict_t*
+make_dict(char *word) {
 	dict_t *nd = (dict_t *) malloc(sizeof(dict_t));
 
 	nd->word = make_word(word);
@@ -38,7 +41,8 @@ dict_t* make_dict(char *word) {
 	return nd;
 }
 
-dict_t* insert_word( dict_t *d, char *word ) {
+dict_t*
+insert_word( dict_t *d, char *word ) {
 	//   Insert word into dict or increment count if already there
 	//   return pointer to the updated dict
 
@@ -68,14 +72,16 @@ dict_t* insert_word( dict_t *d, char *word ) {
 	return nd;
 }
 
-void print_dict() {
+void
+print_dict() {
 	while (d) {
 		printf("[%d] %s\n", d->count, d->word);
 		d = d->next;
 	}
 }
 
-void* thread_worker(void* rank) {
+void*
+thread_worker(void* rank) {
 	int words = 1, inword, c;
 	long _self = (long) rank;
 	char* _wb = malloc(sizeof(char) * (MAXWORD+1));
@@ -116,7 +122,8 @@ void* thread_worker(void* rank) {
 	return NULL;
 }
 
-void words() {
+void
+words() {
 	pthread_mutexattr_init(&guardian_attr);
 	/* use a recursive mutex lock */
 	pthread_mutexattr_settype(&guardian_attr, PTHREAD_MUTEX_RECURSIVE);
@@ -138,7 +145,8 @@ void words() {
 		printf("Error: pthread_mutex_destroy - could not destroy mutex!\n");
 }
 
-int main(int argc, char *argv[]) {
+int
+main(int argc, char *argv[]) {
 	infile = stdin;
 	outfile = stdout;
 
