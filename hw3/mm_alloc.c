@@ -24,9 +24,7 @@ s_blk_ptr _new_mem_blk(void* prev_blk, size_t size) {
 	_temp->next = NULL;
 	_temp->free = 0;
 	_temp->ptr  = (void*) ((mm_lui_t) _temp + (mm_lui_t) sizeof(s_blk_ptr));	
-	fprintf(stdout, "new_blk_ptr (start) - &%ld\n",(mm_lui_t) _temp);
-	fprintf(stdout, "new_blk_ptr (ptr)   - &%ld\n",(mm_lui_t) _temp->ptr);
-	fprintf(stdout, "new_blk_ptr (end)   - &%ld\n",(mm_lui_t) _temp->ptr + (mm_lui_t) size);
+	
 	return _temp;
 }
 
@@ -38,9 +36,6 @@ void* mm_malloc(size_t size) {
 	if (mem_alloc_root == NULL) {
 		// define heap_start
 		heap_start = (mm_lui_t) sbrk(0);
-		fprintf(stdout, "size(blk_ptr)       - %ld\n", sizeof(s_blk_ptr));
-		fprintf(stdout, "heap_start          - &%ld\n", heap_start);
-		fprintf(stdout, "===============================\n");
    
         // Assign memory for first mem block
 		mem_alloc_root = _new_mem_blk(NULL, size);
@@ -51,10 +46,6 @@ void* mm_malloc(size_t size) {
 		s_blk_ptr *_prev = (s_blk_ptr*) (*_curr)->prev;
 
 		while ((*_curr) != NULL) {
-				fprintf(stdout, "...\n");
-				//fprintf(stdout, "curr_blk       : &%ld\n", (*_curr));
-				//fprintf(stdout, "curr_blk->next : &%ld\n", (*_curr)->next);
-				//fprintf(stdout, "curr_blk->prev : &%ld\n", (*_curr)->prev);
 				if ((*_curr)->free && size <= (*_curr)->size) {
 					// blk is empty and is big enough,
 					// so return mem pointer and flip the free value
