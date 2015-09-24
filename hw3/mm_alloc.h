@@ -17,19 +17,21 @@ extern "C" {
 #endif
 
 #include <stdlib.h>
+#include <unistd.h>
 
 void* mm_malloc(size_t size);
 void* mm_realloc(void* ptr, size_t size);
 void mm_free(void* ptr);
 
 
-typedef struct s_block *s_block_ptr;
+typedef struct s_blk *s_blk_ptr;
+typedef long unsigned int mm_lui_t;
 
 /* block struct */
-struct s_block {
+struct s_blk {
     size_t size;
-    struct s_block *next;
-    struct s_block *prev;
+    struct s_blk *next;
+    struct s_blk *prev;
     int free;
     void *ptr;
     /* A pointer to the allocated block */
@@ -37,18 +39,18 @@ struct s_block {
  };
 
 /* Split block according to size, b must exist */
-void split_block (s_block_ptr b, size_t s);
+void split_block (s_blk_ptr b, size_t s);
 
 /* Try fusing block with neighbors */
-s_block_ptr fusion(s_block_ptr b);
+s_blk_ptr fusion(s_blk_ptr b);
 
 /* Get the block from addr */
-s_block_ptr get_block (void *p);
+s_blk_ptr get_blk (void *p);
 
 /* Add a new block at the of heap,
  * return NULL if things go wrong
  */
-s_block_ptr extend_heap (s_block_ptr last , size_t s);
+s_blk_ptr extend_heap (s_blk_ptr last , size_t s);
 
 
 #ifdef __cplusplus
