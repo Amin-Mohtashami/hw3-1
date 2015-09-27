@@ -24,14 +24,14 @@ void* mm_realloc(void* ptr, size_t size);
 void mm_free(void* ptr);
 
 
-typedef struct s_blk *s_blk_ptr;
+typedef struct s_blk* s_blk_ptr;
 typedef long unsigned int mm_lui_t;
 
 /* block struct */
 struct s_blk {
     size_t size;
-    struct s_blk *next;
-    struct s_blk *prev;
+    s_blk_ptr next;
+    s_blk_ptr prev;
     int free;
     void *ptr;
     /* A pointer to the allocated block */
@@ -52,6 +52,10 @@ s_blk_ptr get_blk (void *p);
  */
 s_blk_ptr extend_heap (s_blk_ptr last , size_t s);
 
+/*
+ * Show current mem structure
+ */
+void mm_print_mem();
 
 #ifdef __cplusplus
 }
