@@ -31,7 +31,9 @@ s_blk_ptr _new_mem_blk(s_blk_ptr prev_blk, size_t size) {
 
 void split_block(s_blk_ptr b, size_t s) {
 	s_blk_ptr* _b = (s_blk_ptr*) b;
-	s_blk_ptr _temp = &b;
+	s_blk_ptr _temp = (mm_lui_t) b + sizeof(struct s_blk) + s;
+	
+	fprintf(stdout, "b->next ? &%ld\n", (mm_lui_t) b->next);
 	size_t _req = b->size - s - sizeof(struct s_blk);
 	_temp->size = _req;
 
@@ -71,8 +73,9 @@ void* mm_malloc(size_t size) {
 				// request, and a whole block with at least 1 byte of actual
 				// dyn_alloc space.
 				size_t _req = sizeof(struct s_blk) + size + 1;
-				if ((*_curr)->size >= _req)
+				if ((*_curr)->size >= _req) {
 					split_block((*_curr), size);
+				}
 
 				return (*_curr)->ptr;
 			}
@@ -89,12 +92,9 @@ void* mm_malloc(size_t size) {
 		// Or curr is the first blk and we need to add a next to it
 		if (_prev == NULL) _prev = _curr;
 		(*_prev)->next = _new_mem_blk(*_prev, size);
-		fprintf(stdout, "recv_blk  : &%ld\n", (mm_lui_t) (*_prev)->next);
+		fprintf(stdout, "recv_blk ? &%ld\n", (mm_lui_t) (*_prev)->next);
 		return (*_prev)->next->ptr;
 	}
-
-	//if (sbrk(size) == (void *) -1)
-	//	perror("sbrk");
 
 	return MEM_ALLOC_ROOT->ptr;
 #endif
@@ -107,7 +107,6 @@ void* mm_realloc(void* ptr, size_t size) {
 	// TODO: if size == ptr->size then return ptr;
 	s_blk_ptr _new = mm_malloc(size);
 	s_blk_ptr* _new_struct = (s_blk_ptr*) ((mm_lui_t)_new - sizeof(struct s_blk));
-	fprintf(stdout, "new->next ? &%ld\n", _new_struct);
 	memcpy(_new, ptr, size);
 	return _new;
 #endif

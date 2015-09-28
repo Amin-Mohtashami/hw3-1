@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     mm_free(d1);
     d3 = mm_malloc(sizeof(int));
     fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) d3);
-    d2 = mm_realloc(d2, sizeof(int) * 4);
+    //d2 = mm_realloc(d2, sizeof(int) * 4);
     fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) d2);
     //fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) (d2 = mm_malloc(1)));
     //fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) mm_malloc(sizeof(int*)));
