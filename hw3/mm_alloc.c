@@ -103,7 +103,6 @@ void* mm_realloc(void* ptr, size_t size) {
 #ifdef MM_USE_STUBS
     return realloc(ptr, size);
 #else
-	// TODO: if size == ptr->size then return ptr;
 	s_blk_ptr _old_ptr = (s_blk_ptr) ((mm_lui_t) ptr - sizeof(struct s_blk));
 	_old_ptr->free = 1;	
 
@@ -153,7 +152,6 @@ void mm_free(void* ptr) {
 }
 
 void mm_print_mem() {
-	//return;
 	fprintf(stdout, "\nstart_addr\tsize\tfree\n");
 	fprintf(stdout, "=============================\n");
 
