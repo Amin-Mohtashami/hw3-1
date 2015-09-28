@@ -3,7 +3,7 @@
 #include "mm_alloc.h"
 #include <stdio.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 int main(int argc, char **argv) {
 	FILE *outfile = DEBUG ? stdout : fopen("/dev/null", "w");
@@ -13,10 +13,16 @@ int main(int argc, char **argv) {
 	fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) d1);
     d2 = mm_malloc(sizeof(int));
     fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) d2);
+	mm_print_mem();
     mm_free(d1);
+	mm_print_mem();
+	//mm_free(d2);
+	//mm_print_mem();
+
     d3 = mm_malloc(sizeof(int));
     fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) d3);
-    //d2 = mm_realloc(d2, sizeof(int) * 4);
+	mm_print_mem();
+    d2 = mm_realloc(d2, sizeof(int) * 4);
     fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) d2);
     //fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) (d2 = mm_malloc(1)));
     //fprintf(outfile, "recv_blk*  : &%ld\n", (mm_lui_t) mm_malloc(sizeof(int*)));

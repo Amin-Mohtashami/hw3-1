@@ -18,10 +18,10 @@
 s_blk_ptr MEM_ALLOC_ROOT = NULL;
 mm_lui_t heap_start;
 
-s_blk_ptr _new_mem_blk(s_blk_ptr prev_blk, size_t size) {
-	s_blk_ptr _temp = sbrk(sizeof(struct s_blk) + size);
-	_temp->size = size;
-	_temp->prev = prev_blk;
+s_blk_ptr extend_heap(s_blk_ptr last, size_t s) {
+	s_blk_ptr _temp = sbrk(sizeof(struct s_blk) + s);
+	_temp->size = s;
+	_temp->prev = last;
 	_temp->next = NULL;
 	_temp->free = 0;
 	_temp->ptr  = (void*) ((mm_lui_t) _temp + (mm_lui_t) sizeof(struct s_blk));
@@ -30,16 +30,15 @@ s_blk_ptr _new_mem_blk(s_blk_ptr prev_blk, size_t size) {
 }
 
 void split_block(s_blk_ptr b, size_t s) {
-	s_blk_ptr* _b = (s_blk_ptr*) b;
-	s_blk_ptr _temp = (mm_lui_t) b + sizeof(struct s_blk) + s;
+	s_blk_ptr _temp = (s_blk_ptr) ((mm_lui_t) b + sizeof(struct s_blk) + s);
 	
-	fprintf(stdout, "b->next ? &%ld\n", (mm_lui_t) b->next);
 	size_t _req = b->size - s - sizeof(struct s_blk);
 	_temp->size = _req;
 
 	_temp->prev = b;
 	_temp->next = b->next;
 	b->next = _temp;
+	b->size = s;
 
 	_temp->free = 1;
 	_temp->ptr  = (void*) ((mm_lui_t) _temp + (mm_lui_t) sizeof(struct s_blk));
@@ -54,7 +53,7 @@ void* mm_malloc(size_t size) {
 		// define heap_start
 		heap_start = (mm_lui_t) sbrk(0);
 		// Assign memory for first mem block
-		MEM_ALLOC_ROOT = _new_mem_blk(NULL, size);
+		MEM_ALLOC_ROOT = extend_heap(NULL, size);
 	}
 	else {
 		// check if first block is free
@@ -91,8 +90,8 @@ void* mm_malloc(size_t size) {
 		// make a new blk;
 		// Or curr is the first blk and we need to add a next to it
 		if (_prev == NULL) _prev = _curr;
-		(*_prev)->next = _new_mem_blk(*_prev, size);
-		fprintf(stdout, "recv_blk ? &%ld\n", (mm_lui_t) (*_prev)->next);
+		(*_prev)->next = extend_heap(*_prev, size);
+		
 		return (*_prev)->next->ptr;
 	}
 
@@ -105,11 +104,30 @@ void* mm_realloc(void* ptr, size_t size) {
     return realloc(ptr, size);
 #else
 	// TODO: if size == ptr->size then return ptr;
-	s_blk_ptr _new = mm_malloc(size);
-	s_blk_ptr* _new_struct = (s_blk_ptr*) ((mm_lui_t)_new - sizeof(struct s_blk));
-	memcpy(_new, ptr, size);
+	s_blk_ptr _old_ptr = (s_blk_ptr) ((mm_lui_t) ptr - sizeof(struct s_blk));
+	_old_ptr->free = 1;	
+
+	s_blk_ptr _new = mm_malloc(size); 
+	memmove(_new, ptr, size);
+
 	return _new;
 #endif
+}
+
+// fuse two consecutive memory blk's
+s_blk_ptr fusion(s_blk_ptr ptr) {
+ 	// check if there are any free blks on either side
+	if (ptr->prev != NULL && ptr->prev->free) {
+		ptr->prev->next = ptr->next;
+		ptr->prev->size = ptr->prev->size + sizeof(struct s_blk) + ptr->size;
+		return ptr->prev;
+	}
+	if (ptr->next != NULL && ptr->next->free) {
+		ptr->next = ptr->next->next;
+		ptr->size = ptr->size + sizeof(struct s_blk) + ptr->next->size;
+	}
+
+	return ptr;
 }
 
 void mm_free(void* ptr) {
@@ -123,6 +141,7 @@ void mm_free(void* ptr) {
 	while ((*_curr) != NULL) {
 		if ((*_curr)->ptr == ptr) {
 			(*_curr)->free = 1;
+			fusion(*_curr);
 			break;
 		}
 
@@ -135,7 +154,7 @@ void mm_free(void* ptr) {
 
 void mm_print_mem() {
 	//return;
-	fprintf(stdout, "\nstart_addr\tsize\tfree\tnext\n");
+	fprintf(stdout, "\nstart_addr\tsize\tfree\n");
 	fprintf(stdout, "=============================\n");
 
 	// check if first block is free
@@ -144,8 +163,8 @@ void mm_print_mem() {
 	int i = 0;
 
 	while ((*_curr) != NULL  && i <= 10) {
-		fprintf(stdout, "%ld\t%ld\t%d\t%ld\n", (mm_lui_t) (*_curr), (*_curr)->size,
-			(*_curr)->free, (mm_lui_t) (*_curr)->next);
+		fprintf(stdout, "%ld\t%ld\t%d\n", (mm_lui_t) (*_curr), (*_curr)->size,
+			(*_curr)->free);
 		// check if the next is null before assigning...
 		if ((*_curr)->next == NULL) break;
 		*_curr = (s_blk_ptr) (*_curr)->next;

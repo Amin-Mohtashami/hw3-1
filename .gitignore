@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Object files
 *.o
 *.ko
@@ -52,4 +51,4 @@ main
 map
 wc
 *txt
->>>>>>> 91bfc44c68ac8ac54231a106afaf7f27729eb1f4
+

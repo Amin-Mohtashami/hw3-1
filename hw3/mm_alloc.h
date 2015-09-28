@@ -9,7 +9,10 @@
 #ifndef _malloc_H_
 #define _malloc_H_
 
- /* Define the block size since the sizeof will be wrong */
+ /* Define the block size since the sizeof will be wrong
+	Fix: just use sizeof(struct s_blk) instead of sizeof(s_blk_ptr)
+  */
+
 #define BLOCK_SIZE 40
 
 #ifdef __cplusplus
